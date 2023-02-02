@@ -21,8 +21,7 @@
     - restart apache
 
 - name: Copy sample config file
-  command: mv /var/www/html/wordpress/wp-config-sample.php /var/www/html/wordpress/wp-config.php 
-creates=/var/www/html/wordpress/wp-config.php
+  command: mv /var/www/html/wordpress/wp-config-sample.php /var/www/html/wordpress/wp-config.php creates=/var/www/html/wordpress/wp-config.php
   become: yes
 
 - name: Wordpress | Copy wp-config.php file content
