@@ -4,11 +4,22 @@
 - name: Update apt cache
   apt: 
     update_cache: yes 
-    cache_valid_time: 3600
+    cache_valid_time: 86400
   become: yes
 
 - name: Install required software
   apt: 
-    pkg: ['apache2', 'mysql-server', 'php7.2-mysql', 'php7.2', 'libapache2-mod-php7.2', 'python-mysqldb']
+    pkg: ['php-pear', 'php-fpm', 'php-dev', 'php-zip', 'php-curl', 'php-xmlrpc', 'php-gd', 'php-mysql', 'php-mbstring', 'php-xml']
+    update_cache: yes
+    cache_valid_time: 86400
     state: present
   become: yes
+
+- name: Installing dependencies
+  apt:
+    pkg: [ 'php-mysql', 'python3-pymysql' ]
+    update_cache: yes
+    cache_valid_time: 86400
+    state: present
+  notify:
+    - restart apache2

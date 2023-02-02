@@ -31,4 +31,4 @@ creates=/var/www/wordpress/wp-config.php'
 - name: Wordpress | Copy wp-config.php file content
   template:
     src: wp-config.php.j2
-    dest: "{{ wp_install_dir }}/wp-config.php"
+    dest: "/var/www/wordpress/wp-config.php"
