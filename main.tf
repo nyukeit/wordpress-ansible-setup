@@ -58,6 +58,7 @@ resource "aws_instance" "ec2wpserver" {
     timeout = "4m"
   }
 
+  # This makes the first SSH handshake with EC2 using SSH so we don't have a connection error with Ansible
   provisioner "remote-exec" {
     inline = [
       "touch /home/ubuntu/demo-file-from-terraform.txt"
