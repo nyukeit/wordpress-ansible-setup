@@ -1,21 +1,22 @@
 locals {
   ami_id = "ami-08fdec01f5df9998f"
-  vpc_id = "vpc-0994a29c9c1a7a19a"
+  vpc_id = "<your_vpc_id>"
   ssh_user = "ubuntu"
   key_name = "wpserver"
-  private_key_path = "/home/labsuser/terransible/wpserver.pem"
+  private_key_path = "${path.module}/wpserver.pem"
 }
 
 provider "aws" {
-  access_key = ""
-  secret_key = ""
-  region = "us-east-1"
+  access_key = "<your_access_key>"
+  secret_key = "<your_secret_key>"
+  token = "" # If you need it
+  region = ""
 }
 
-resource "aws_security_group" "wpserver" {
-  name = "wpserver"
+resource "aws_security_group" "wpserversg" {
+  name = "wpserversg"
   vpc_id = local.vpc_id
-  
+
   ingress {
     from_port = 80
     to_port = 80
@@ -44,19 +45,23 @@ resource "aws_instance" "ec2wpserver" {
   associate_public_ip_address = true
   vpc_security_group_ids = [aws_security_group.wpserversg.id]
   key_name = local.key_name
-  
+
   tags = {
     Name = "WordPress Server"
   }
-  
-  provisioner "remote-exec" "sshhandshake" {
-    connection {
-      type = "ssh"
-      host = aws_instance.ec2wpserver.public_ip
-      user = local.ssh_user
-      private_key = file(local.private_key_path)
-      timeout = "4m"
-    }
+
+  connection {
+    type = "ssh"
+    host = self.public_ip
+    user = local.ssh_user
+    private_key = file(local.private_key_path)
+    timeout = "4m"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "touch /home/ubuntu/demo-file-from-terraform.txt"
+    ]
   }
 }
 
@@ -76,10 +81,10 @@ resource "local_file" "hosts" {
 
 resource "null_resource" "run_playbook" {
   depends_on = [
-    
+
     # Running of the playbook depends on the successfull creation of the EC2
     # instance and the local inventory file.
-    
+
     aws_instance.ec2wpserver,
     local_file.hosts,
   ]
