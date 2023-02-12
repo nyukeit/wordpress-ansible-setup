@@ -1,5 +1,7 @@
 - hosts: wordpress
   gather_facts: False
+  vars:
+    ansible_host_key_checking: false
 
   roles:
     - server

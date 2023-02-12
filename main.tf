@@ -1,9 +1,40 @@
+terraform { 
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "4.37.0" }
+  } 
+}
+
 locals {
-  ami_id = "ami-08fdec01f5df9998f"
-  vpc_id = "<your_vpc_id>"
-  ssh_user = "ubuntu"
-  key_name = "wpserver"
-  private_key_path = "${path.module}/wpserver.pem"
+  ami_id = "ami-08fdec01f5df9998f" # For simplicity we are using a hardocded ami.
+  ssh_user = "ubuntu"  
+}
+
+/* This is how the AMI ID should ideally be fetched.
+data "aws_ami" "example" { 
+  filter {
+    name = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-*-22.04-amd64-server-*"]
+  }
+    most_recent = true 
+}
+
+output "myami" {
+  value = data.aws_ami.example.image_id
+}
+*/
+
+#Resource to create a SSH private key
+resource "tls_private_key" "pvtkey" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+#Resource to Create Key Pair
+resource "aws_key_pair" "wpserver" {
+  key_name   = var.wpserver
+  public_key = tls_private_key.pvtkey.public_key_openssh
 }
 
 provider "aws" {
@@ -15,7 +46,7 @@ provider "aws" {
 
 resource "aws_security_group" "wpserversg" {
   name = "wpserversg"
-  vpc_id = local.vpc_id
+  # vpc_id = local.vpc_id # If you have custom VPC
 
   ingress {
     from_port = 80
@@ -44,25 +75,10 @@ resource "aws_instance" "ec2wpserver" {
   instance_type = "t2.micro"
   associate_public_ip_address = true
   vpc_security_group_ids = [aws_security_group.wpserversg.id]
-  key_name = local.key_name
+  key_name = aws_key_pair.wpserver.key_name
 
   tags = {
     Name = "WordPress Server"
-  }
-
-  connection {
-    type = "ssh"
-    host = self.public_ip
-    user = local.ssh_user
-    private_key = file(local.private_key_path)
-    timeout = "4m"
-  }
-
-  # This makes the first SSH handshake with EC2 using SSH so we don't have a connection error with Ansible
-  provisioner "remote-exec" {
-    inline = [
-      "touch /home/ubuntu/demo-file-from-terraform.txt"
-    ]
   }
 }
 
@@ -71,7 +87,6 @@ resource "local_file" "hosts" {
   content = templatefile("${path.module}/templates/hosts",
     {
       public_ipaddr = aws_instance.ec2wpserver.public_ip
-      key_path = local.private_key_path
       ansible_user = local.ssh_user
     }
   )
