@@ -33,7 +33,7 @@ resource "tls_private_key" "pvtkey" {
 
 #Resource to Create Key Pair
 resource "aws_key_pair" "wpserver" {
-  key_name   = var.wpserver
+  key_name   = "ssh-keypair"
   public_key = tls_private_key.pvtkey.public_key_openssh
 }
 
