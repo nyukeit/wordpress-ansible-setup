@@ -1,6 +1,8 @@
 # Installing WordPress on EC2 using Terraform and Ansible
 Automating Wordpress install using `terraform init` to create an EC2 instance, dynamically add the host IP to Ansible inventory file and run an Ansible playbook that installs dependencies and downloads and extracts Wordpress, creates MySQL DB and user and populates the `wp-config.php` file automatically.
 
+Update: Updated to use the singular Wordpress role from here [Ansible-Galaxy](https://galaxy.ansible.com/codenamenuke/wordpress)
+
 ## Alternate Repo for Ansible Role only
 If you wish to only use the Ansible role to install WordPress without using Terraform and EC2, it can be done in one of two ways:
 
