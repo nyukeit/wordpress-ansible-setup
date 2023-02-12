@@ -1,0 +1,63 @@
+---
+# Tasks file for the Wordpress Role
+
+- name: Update apt cache
+  apt: update_cache=yes cache_valid_time=3600
+  become: true
+
+- name: Install required software
+  apt:
+    name: ['apache2', 'python3-dev', 'python3-pip', 'mysql-server', 'php-mysql', 'php', 'libapache2-mod-php', 'python3-mysqldb']
+    state: present
+  become: true
+
+- name: Install php extensions
+  apt:
+    name: ['php-gd', 'php-ssh2']
+    state: present
+  become: true
+
+- name: Create mysql database
+  mysql_db:
+    name: '{{ wp_mysql_db }}'
+    state: present
+  become: true
+
+- name: Create mysql user
+  mysql_user:
+    name: '{{ wp_mysql_user }}'
+    password: '{{ wp_mysql_password }}'
+    priv: '*.*:ALL'
+  become: true
+
+- name: Download WordPress
+  get_url:
+    url: 'https://wordpress.org/latest.tar.gz'
+    dest: '/tmp/wordpress.tar.gz'
+    validate_certs: no
+
+- name: Extract WordPress
+  unarchive:
+    src: '/tmp/wordpress.tar.gz'
+    dest: '/var/www/html'
+    copy: no
+  become: true
+
+- name: Update default Apache site
+  become: true
+  lineinfile:
+    dest=/etc/apache2/sites-enabled/000-default.conf
+    regexp="(.)+DocumentRoot /var/www/html"
+    line="DocumentRoot /var/www/html/wordpress"
+  notify:
+    - restart apache
+
+- name: Copy sample config file
+  command: mv /var/www/html/wordpress/wp-config-sample.php /var/www/html/wordpress/wp-config.php creates=/var/www/html/wordpress/wp-config.php
+  become: true
+
+- name: Copy wp-config.php file content
+  become: true
+  template:
+    src: wp-config.php.j2
+    dest: "/var/www/html/wordpress/wp-config.php"

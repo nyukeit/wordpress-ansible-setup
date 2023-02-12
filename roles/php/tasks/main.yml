@@ -1,7 +1,0 @@
----
-# tasks file for php
-- name: Install php extensions
-  apt: 
-    pkg: ['php-gd', 'php-ssh2']
-    state: present
-  become: yes

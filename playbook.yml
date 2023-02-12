@@ -4,7 +4,4 @@
     ansible_host_key_checking: false
 
   roles:
-    - server
-    - php
-    - mysql
     - wordpress

@@ -1,0 +1,17 @@
+galaxy_info:
+  role_name: wordpress
+  author: codenamenuke
+  description: Install & Configure WordPress with Apache, PHP & MySQL
+
+  license: license (MIT)
+
+  min_ansible_version: "2.9"
+
+  platforms:
+  - name: Ubuntu
+    versions:
+    - bionic
+
+  galaxy_tags:
+    - wordpress
+    - ubuntu
