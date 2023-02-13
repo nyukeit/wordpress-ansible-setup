@@ -3,3 +3,4 @@ ${public_ipaddr}
 
 [wordpress:vars]
 ansible_ssh_user = ubuntu
+ansible_interpreter_python=/usr/bin/python3
