@@ -6,7 +6,7 @@ Update: Updated to use the singular Wordpress role from here [Ansible-Galaxy](ht
 
 ## Pre-requisites
 Edit the Ansible Configuration file with the following:
-```toml
+```ini
 [defaults]
 interpreter_python = /usr/bin/python3
 host_key_checking = False
