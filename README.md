@@ -11,6 +11,8 @@ Edit the Ansible Configuration file with the following:
 interpreter_python = /usr/bin/python3
 host_key_checking = False
 ```
+> Remember to use your own AWS credentials in the TF file.
+
 ## Alternate Repo for Ansible Role only
 
 If you wish to only use the Ansible role to install WordPress without using Terraform and EC2, it can be done in one of two ways:
@@ -40,8 +42,6 @@ terraform init
 terraform validate
 terraform apply
 ```
-
-Remember to use your own AWS credentials in the TF file.
 
 Upon successful run, you should see your EC2 instance with a public IP address. Visit this address in your browser to see the WordPress setup screen.
 
