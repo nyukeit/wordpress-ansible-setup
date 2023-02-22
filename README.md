@@ -3,14 +3,19 @@
 Automating Wordpress install using `terraform init` to create an EC2 instance, dynamically add the host IP to Ansible inventory file and run an Ansible playbook that installs dependencies and downloads and extracts Wordpress, creates MySQL DB and user and populates the `wp-config.php` file automatically.
 
 Update: Updated to use the singular Wordpress role from here [Ansible-Galaxy](https://galaxy.ansible.com/codenamenuke/wordpress)
+> Note: The Terraform execution will create a dynamic inventory file in the local folder that will be used by Ansible.
+> Note: Terraform does not recommend creating tls_private_key as the keys are stored in the Terraform state file unencrypted. Generate a key pair directly from your EC2 Dashboard.
 
 ## Pre-requisites
+
 Edit the Ansible Configuration file with the following:
+
 ```ini
 [defaults]
 interpreter_python = /usr/bin/python3
 host_key_checking = False
 ```
+
 > Remember to use your own AWS credentials in the TF file.
 
 ## Alternate Repo for Ansible Role only
