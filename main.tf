@@ -2,52 +2,33 @@ terraform {
   required_providers {
     aws = {
       source = "hashicorp/aws"
-      version = "4.37.0" }
+      version = "4.55.0" }
   } 
 }
 
+# Define the local variables for the root module
 locals {
-  ami_id = "ami-08fdec01f5df9998f" # For simplicity we are using a hardocded ami.
-  ssh_user = "ubuntu"  
+  ami_id = "ami-08fdec01f5df9998f"
+  vpc_id = "<your_vpc_id>"
+  ssh_user = "ubuntu"
+  key_name = "wpserver"
+  private_key_path = "${path.module}/wpserver.pem"
 }
 
-/* This is how the AMI ID should ideally be fetched.
-data "aws_ami" "example" { 
-  filter {
-    name = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-*-22.04-amd64-server-*"]
-  }
-    most_recent = true 
-}
-
-output "myami" {
-  value = data.aws_ami.example.image_id
-}
-*/
-
-#Resource to create a SSH private key
-resource "tls_private_key" "pvtkey" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-#Resource to Create Key Pair
-resource "aws_key_pair" "wpserver" {
-  key_name   = "ssh-keypair"
-  public_key = tls_private_key.pvtkey.public_key_openssh
-}
-
+# Uses the AWS provider to setup access
 provider "aws" {
   access_key = "<your_access_key>"
   secret_key = "<your_secret_key>"
-  token = "" # If you need it
+  token = ""
   region = ""
 }
 
+# Creates the EC2 Security Group with Inbound and Outbound rules.
 resource "aws_security_group" "wpserversg" {
   name = "wpserversg"
-  # vpc_id = local.vpc_id # If you have custom VPC
-
+  vpc_id = local.vpc_id
+	
+	# This will allow us to access the HTTP server on Port 80, where our WP will be accessible.
   ingress {
     from_port = 80
     to_port = 80
@@ -55,6 +36,7 @@ resource "aws_security_group" "wpserversg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+	# This will allow us to SSH into the instance for Ansible to do it's magic.
   ingress {
     from_port = 22
     to_port = 22
@@ -70,15 +52,30 @@ resource "aws_security_group" "wpserversg" {
   }
 }
 
+# This creates the EC2 instance and makes an initial SSH connection.
 resource "aws_instance" "ec2wpserver" {
   ami = local.ami_id
   instance_type = "t2.micro"
   associate_public_ip_address = true
   vpc_security_group_ids = [aws_security_group.wpserversg.id]
-  key_name = aws_key_pair.wpserver.key_name
+  key_name = local.key_name
 
   tags = {
     Name = "WordPress Server"
+  }
+
+  connection {
+    type = "ssh"
+    host = self.public_ip
+    user = local.ssh_user
+    private_key = file(local.private_key_path)
+    timeout = "4m"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "touch /home/ubuntu/demo-file-from-terraform.txt"
+    ]
   }
 }
 
@@ -87,6 +84,7 @@ resource "local_file" "hosts" {
   content = templatefile("${path.module}/templates/hosts",
     {
       public_ipaddr = aws_instance.ec2wpserver.public_ip
+      key_path = local.private_key_path
       ansible_user = local.ssh_user
     }
   )
